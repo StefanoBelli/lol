@@ -1,0 +1,13 @@
+COMPILER = cl.exe
+COMPILE_FLAGS = /Os /W1
+STATIC_LIBS = ws2_32.lib shell32.lib user32.lib advapi32.lib
+SOURCES = SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c Main.c
+EXECUTABLE_OUT = Rat.exe
+
+all:$(SOURCES)
+	$(COMPILER) $(STATIC_LIBS) $(COMPILE_FLAGS) /o $(EXECUTABLE_OUT) $**
+	
+clean:
+	del *.obj
+
+
