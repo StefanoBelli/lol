@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+
+import select
+import socket
+import sys
+
+local_addr = ('', 12345)
+
+def stdout_controller_print(text):
+    print("> {}".format(text))
+
+def obtain_socket(address):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(address)
+    sock.listen(1)
+    
+    return sock
+
+def print_remote(sock):
+    while(True):
+        sys.stdout.write("\n")
+        readsock, _, _ = select.select([sys.stdin, sock],[],[])
+        for sck in readsock:
+            if sck == sock:
+                try:
+                    text = sock.recv(257).decode('ascii')
+                except ConnectionResetError:
+                    return
+
+                phrases = text.split('\n')
+                for phrase in phrases:
+                    if phrase != "":
+                        sys.stdout.write("remote: {}\n".format(phrase))
+            else:
+                command = sys.stdin.readline()
+                if command == "close\n":
+                    return
+                stdout_controller_print("got it: sent {} bytes...".format(sock.send(command.encode('ascii'))))
+
+if __name__ == '__main__':
+    stdout_controller_print("setting up...")
+    
+    lsock = obtain_socket(local_addr)
+     
+    stdout_controller_print("waiting for connection...")
+    (conn_sock, conn_info) = lsock.accept()
+    
+    stdout_controller_print("connection accepted:")
+    stdout_controller_print("\taddress: {}".format(conn_info[0]))
+    stdout_controller_print("\tlocal port: {}".format(conn_info[1]))
+    stdout_controller_print("type \"close\" to end connection correctly");
+
+    print_remote(conn_sock)
+
+    conn_sock.close()
+    lsock.close()
+
+    stdout_controller_print("bye")
