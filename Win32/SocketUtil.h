@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+#define MAX_BUF_IN_OUT 256
+#define BUFSIZE (MAX_BUF_IN_OUT + 1)
+
 SOCKET NewTcpSocket();
 BOOL EstablishConnection(SOCKET*, PCSTR, SHORT);
 void CloseConnection(SOCKET*);

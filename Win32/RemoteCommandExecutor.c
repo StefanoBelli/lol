@@ -1,11 +1,48 @@
 #include <stdio.h>
+#include <string.h>
+
 #include "RemoteCommandExecutor.h"
 #include "SocketUtil.h"
+#include "Commands.h"
+
+static SOCKET tcpSocket = SOCKET_ERROR;
+Command commands[N_COMMANDS] = {
+	{ "help",  (CommandProc) HelpCommand, FALSE},
+	{ "hello", (CommandProc) HelloCommand, FALSE},
+	{ "reply", ReplyCommand, TRUE}
+};
+
+static void CommandExecutor(PSTR buffer) {
+	BOOL isValidCommand = FALSE;
+
+	char* firstToken = strtok(buffer, " ");
+
+	if(!firstToken) {
+		WriteConnection(&tcpSocket, "Internal error occoured\nIgnoring message preventing process crash...\n");
+		return;
+	}
+
+	for(int i = 0;i < N_COMMANDS; i++) {
+		if(!strcmp(firstToken,commands[i].command)) {
+			if(commands[i].proc) {
+				if(commands[i].proc(&tcpSocket, buffer + strlen(firstToken) + 1) == FALSE)
+					WriteConnection(&tcpSocket, "Not enough arguments\n");
+			} else
+				WriteConnection(&tcpSocket, "Could not execute command!\n");
+
+			isValidCommand = TRUE;
+			break;
+		}
+	}
+
+	if(!isValidCommand)
+		WriteConnection(&tcpSocket, "Uh?\n"
+				"Invalid command\n"
+				"Use \"help\" to get help.\n");
+}
 
 #define DST "192.168.2.103"
-#define PORT 12345L
-#define MAX_BUF_IN_OUT 256
-#define BUFSIZE (MAX_BUF_IN_OUT + 1)
+#define PORT 12345
 
 #define SendInitialInfo(wsad) { \
 	char buf[BUFSIZE]; \
@@ -20,31 +57,6 @@
 			wsad.iMaxSockets, wsad.lpVendorInfo, wsad.szSystemStatus); \
 	WriteConnection(&tcpSocket, buf); \
 }
-
-#define N_COMMANDS 2
-
-typedef void(*CommandProc)();
-
-static SOCKET tcpSocket = SOCKET_ERROR;
-static char *commandsString[] = { "help\n", "hello\n" };
-
-void HelpCommand() {
-	char buf[BUFSIZE];
-	ZeroMemory(buf,BUFSIZE);
-
-	for(int i = 0; i < N_COMMANDS && strlen(buf) < BUFSIZE; i++)
-		strncat(buf, commandsString[i], strlen(commandsString[i]));
-	
-	WriteConnection(&tcpSocket, buf);
-}
-
-void HelloCommand() {
-	WriteConnection(&tcpSocket, "i am still here dumbass...\n");
-}
-
-static CommandProc commandProc[2] = { HelpCommand, HelloCommand };
-
-void CommandParser(PSTR);
 
 void StartCommandExecutorConnection(void) {
 	WSADATA internalSocketData;
@@ -62,7 +74,7 @@ void StartCommandExecutorConnection(void) {
 		//it will run til TCP connection is ESTABLISHED
 		char commandBuffer[BUFSIZE];
 		while(ReadConnection(&tcpSocket, commandBuffer, MAX_BUF_IN_OUT))
-			CommandParser(commandBuffer);
+			CommandExecutor(commandBuffer);
 
 		//disconnected or error occoured, close socket and get back
 		CloseConnection(&tcpSocket);
@@ -73,18 +85,3 @@ void StopCommandExecutor(void) {
 	CloseConnection(&tcpSocket);
 	WSACleanup();
 }
-
-static void CommandParser(PSTR buffer) {
-	BOOL isValidCommand = FALSE;
-
-	for(int i = 0;i < N_COMMANDS; i++) {
-		if(!strcmp(buffer,commandsString[i])) {
-			commandProc[i]();
-			isValidCommand = TRUE;
-		}
-	}
-
-	if(!isValidCommand)
-		WriteConnection(&tcpSocket, "Uh?\nInvalid command.\n");
-}
-

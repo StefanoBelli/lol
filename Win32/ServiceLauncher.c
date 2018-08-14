@@ -65,7 +65,7 @@ void InstallAndStartService() {
 	
 	char executablePath[2 + MAX_PATH + sizeof(" -AsService")];
 	GenerateCommandLine(executablePath, 2 + MAX_PATH);
-	
+
 	SC_HANDLE newService = CreateNewService(systemLocalScm, executablePath);
 	if(newService == NULL) {
 		CloseServiceHandle(systemLocalScm);
