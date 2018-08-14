@@ -33,9 +33,18 @@ def controller_kind_of_shell(sock):
                     if phrase != "":
                         sys.stdout.write("remote: {}\n".format(phrase))
             else:
-                command = sys.stdin.readline()
+                command = sys.stdin.readline().rstrip()
+
+                if len(command) > 255:
+                    stdout_controller_print("seems too long to me...")
+                    break
+                elif len(command) == 0:
+                    stdout_controller_print("seems too short... :/")
+                    break
+
                 if command == "close\n":
                     return
+                
                 stdout_controller_print("got it: sent {} bytes...".format(sock.send(command.encode('ascii'))))
 
 if __name__ == '__main__':
@@ -50,6 +59,7 @@ if __name__ == '__main__':
     stdout_controller_print("\taddress: {}".format(conn_info[0]))
     stdout_controller_print("\tlocal port: {}".format(conn_info[1]))
     stdout_controller_print("type \"close\" to end connection correctly");
+    stdout_controller_print("input max length is 256 including newline");
 
     controller_kind_of_shell(conn_sock)
 
@@ -57,3 +67,4 @@ if __name__ == '__main__':
     lsock.close()
 
     stdout_controller_print("bye")
+    
