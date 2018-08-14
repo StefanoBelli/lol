@@ -17,8 +17,8 @@ def obtain_socket(address):
     
     return sock
 
-def print_remote(sock):
-    while(True):
+def controller_kind_of_shell(sock):
+    while True:
         sys.stdout.write("\n")
         readsock, _, _ = select.select([sys.stdin, sock],[],[])
         for sck in readsock:
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     stdout_controller_print("\tlocal port: {}".format(conn_info[1]))
     stdout_controller_print("type \"close\" to end connection correctly");
 
-    print_remote(conn_sock)
+    controller_kind_of_shell(conn_sock)
 
     conn_sock.close()
     lsock.close()
