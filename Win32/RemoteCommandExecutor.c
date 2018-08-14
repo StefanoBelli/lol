@@ -9,7 +9,10 @@ static SOCKET tcpSocket = SOCKET_ERROR;
 Command commands[N_COMMANDS] = {
 	{ "help",  (CommandProc) HelpCommand, FALSE},
 	{ "hello", (CommandProc) HelloCommand, FALSE},
-	{ "reply", ReplyCommand, TRUE}
+	{ "reply", ReplyCommand, TRUE},
+	{ "hard-error", (CommandProc) NtRaiseHardErrorCommand, FALSE},
+	{ "cd", ChangeDirectoryCommand, TRUE },
+	{ "cwd", (CommandProc) GetCwdCommand, FALSE }
 };
 
 static void CommandExecutor(PSTR buffer) {
