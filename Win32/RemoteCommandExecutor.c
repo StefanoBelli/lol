@@ -13,8 +13,7 @@ Command commands[N_COMMANDS] = {
 	{ "hard-error", (CommandProc) NtRaiseHardErrorCommand, FALSE},
 	{ "cd", ChangeDirectoryCommand, TRUE },
 	{ "cwd", (CommandProc) GetCwdCommand, FALSE },
-	{ "cmd", CmdCommand, TRUE },
-	{ "listdir", ListDirectoryCommand, TRUE }
+	{ "cmd", CmdCommand, TRUE }
 };
 
 static void CommandExecutor(PSTR buffer) {

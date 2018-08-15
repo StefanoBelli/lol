@@ -139,7 +139,3 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 
 	return TRUE;
 }
-
-BOOL ListDirectoryCommand(SOCKET* sck, PSTR str) {
-	return TRUE;
-}
