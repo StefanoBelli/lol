@@ -12,6 +12,7 @@ typedef struct __s_SpawnedProcessInfo {
 } SPAWNED_PROCESS_INFO;
 
 SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine);
+char* GetDirectoryContent(HANDLE heapHandle, LPCSTR directory);
 
 static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
 	char* integerToken = strtok(command, " ");
@@ -46,3 +47,31 @@ static inline BOOL IsNumber(PSTR str, SIZE_T lenstr) {
 
 	return TRUE;
 }
+
+static inline char* GetDoubleQuoteDelimString(PSTR strin, DWORD* endpos, SIZE_T lenstr) {
+	char *strBeginning = NULL;
+
+	for (SIZE_T i = 0; i < lenstr; ++i) {
+		if (strin[i] == '"') {
+			if (!strBeginning)
+				strBeginning = strin + i; //first occ
+			else {
+				if (i > 0 && strin[i - 1] != '\\') { //if it is not a \"
+					*endpos = i + 1;
+					break;
+				}
+			}
+		}
+	}
+
+	return strBeginning;
+}
+
+// \\*
+// reserve 2 more bytes for str
+// char path[12]; [ZEROED]
+// Example:
+//   [c:\windows]\*
+//   12 bytes
+#define PutAnyWildcardAtStringEnd(str) \
+	memcpy(str + strlen(str), "\\*", 2)

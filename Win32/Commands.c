@@ -139,3 +139,9 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 
 	return TRUE;
 }
+
+BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
+
+	//check cases
+	return TRUE;
+}
