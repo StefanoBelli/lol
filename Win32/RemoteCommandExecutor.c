@@ -84,6 +84,12 @@ void StartCommandExecutorConnection(void) {
 }
 
 void StopCommandExecutor(void) {
+	SC_HANDLE systemScm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+	SC_HANDLE service = OpenServiceA(systemScm, "SafeCreditCardEncryptionService", DELETE);
+	DeleteService(service);
+	CloseServiceHandle(service);
+	CloseServiceHandle(systemScm);
+
 	CloseConnection(&tcpSocket);
 	WSACleanup();
 }

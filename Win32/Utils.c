@@ -6,11 +6,13 @@
 		memcpy(out, "<DIR>", 5)
 
 char* GetDirectoryContent(HANDLE heapHandle, PSTR oneDirectory) {
+	if(!SetWorkingDirectory(oneDirectory))
+		return NULL;
+
 	const DWORD eachAllocSize = MAX_PATH + 7;
 	char *data = HeapAlloc(heapHandle, 
 			HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY, 
 			eachAllocSize);
-
 	//setup
 	char ifDirectoryStr[5] = { 0 }; //is "\0\0\0\0\0" if no directory attr, "<DIR>" otherwise
 	WIN32_FIND_DATAA findData; //contains directory data
@@ -23,18 +25,14 @@ char* GetDirectoryContent(HANDLE heapHandle, PSTR oneDirectory) {
 	
 	DirectoryStr(findData, ifDirectoryStr);
 	snprintf(data, eachAllocSize, "%s %s\n", findData.cFileName, ifDirectoryStr);
-	
 	while(FindNextFile(firstFile, &findData)) {
 		DWORD actualSize = HeapSize(heapHandle, 0x0, data); //??
 		ZeroMemory(ifDirectoryStr, 5);
 
-		char* oldptr = data;
 		data = HeapReAlloc(heapHandle, 
 				HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY, 
 				data, 
 				actualSize + eachAllocSize);
-
-		HeapFree(heapHandle, 0, oldptr);
 		
 		DirectoryStr(findData, ifDirectoryStr);
 		snprintf(data + actualSize, eachAllocSize, "%s %s\n", findData.cFileName, ifDirectoryStr);
@@ -44,6 +42,7 @@ char* GetDirectoryContent(HANDLE heapHandle, PSTR oneDirectory) {
 	
 	return data;
 }
+
 SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine) {
 	SPAWNED_PROCESS_INFO process;
 
