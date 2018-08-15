@@ -25,6 +25,8 @@ def controller_kind_of_shell(sock):
             if sck == sock:
                 try:
                     text = sock.recv(257).decode('ascii')
+                    if len(text) is 0:
+                        raise ConnectionResetError
                 except ConnectionResetError:
                     return
 
@@ -48,23 +50,31 @@ def controller_kind_of_shell(sock):
                 stdout_controller_print("got it: sent {} bytes...".format(sock.send(command.encode('ascii'))))
 
 if __name__ == '__main__':
+    lsock = None
+    conn_sock = None
+
     stdout_controller_print("setting up...")
-    
-    lsock = obtain_socket(local_addr)
-     
-    stdout_controller_print("waiting for connection...")
-    (conn_sock, conn_info) = lsock.accept()
-    
-    stdout_controller_print("connection accepted:")
-    stdout_controller_print("\taddress: {}".format(conn_info[0]))
-    stdout_controller_print("\tlocal port: {}".format(conn_info[1]))
-    stdout_controller_print("type \"close\" to end connection correctly");
-    stdout_controller_print("input max length is 256 including newline");
 
-    controller_kind_of_shell(conn_sock)
+    try:
+        lsock = obtain_socket(local_addr)
+        stdout_controller_print("waiting for connection...")
+        (conn_sock, conn_info) = lsock.accept()
+        
+        stdout_controller_print("connection accepted:")
+        stdout_controller_print("\taddress: {}".format(conn_info[0]))
+        stdout_controller_print("\tlocal port: {}".format(conn_info[1]))
+        stdout_controller_print("type \"close\" to end connection correctly");
+        stdout_controller_print("input max length is 256 including newline");
+        
+        controller_kind_of_shell(conn_sock)
+    except KeyboardInterrupt:
+        stdout_controller_print("KeyboardInterrupt");
 
-    conn_sock.close()
-    lsock.close()
+    if conn_sock is not None: 
+        conn_sock.close()
+
+    if lsock is not None: 
+        lsock.close()
 
     stdout_controller_print("bye")
     
