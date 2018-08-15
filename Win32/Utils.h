@@ -73,5 +73,28 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, DWORD* endpos, SIZE_T 
 // Example:
 //   [c:\windows]\*
 //   12 bytes
-#define PutAnyWildcardAtStringEnd(str) \
-	memcpy(str + strlen(str), "\\*", 2)
+#define PutAnyWildcardAtString(str) \
+	strncat(str, "\\*", 2)
+
+static inline char* GetNextStringToken(PSTR strin, DWORD* quotedStringEndPos) {
+	static char* firstToken = NULL;
+
+	//reset internal state
+	if (strin == NULL) {
+		firstToken = NULL;
+		return NULL;
+	}
+
+	if (firstToken == NULL)
+		firstToken = strtok(strin, " ");
+	else
+		firstToken = strtok(NULL, " ");
+
+	if (firstToken == NULL)
+		return NULL;
+
+	*quotedStringEndPos = 0;
+	char* string = GetDoubleQuoteDelimString(firstToken, quotedStringEndPos, strlen(firstToken));
+
+	return string ? string : firstToken;
+}
