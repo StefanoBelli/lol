@@ -11,41 +11,22 @@ typedef struct __s_SpawnedProcessInfo {
 	BOOL isOk;
 } SPAWNED_PROCESS_INFO;
 
-static inline SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine) {
-	SPAWNED_PROCESS_INFO process;
+SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine);
+char* GetDirectoryContent(HANDLE heapHandle, PSTR oneDirectory);
 
-	PROCESS_INFORMATION procInfo;
-	STARTUPINFO startupInfo;
+static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
+	char* integerToken = strtok(command, " ");
+	char* endptr = NULL;
+	SIZE_T integerTokenLen = strlen(integerToken);
 
-	ZeroMemory(&startupInfo, sizeof(STARTUPINFO));
-	ZeroMemory(&procInfo, sizeof(PROCESS_INFORMATION));
-	ZeroMemory(&process, sizeof(SPAWNED_PROCESS_INFO));
+	if((*dwTimeout = strtol(integerToken, &endptr, 10)) == 0){
+		if(!IsNumber(integerToken, integerTokenLen))
+			return NULL;
+		else
+			*dwTimeout = INFINITE;
+	}
 
-	char system32[MAX_PATH];
-	ZeroMemory(system32, MAX_PATH);
-
-	const char* systemDrive = getenv("SystemDrive");
-	*system32 = *systemDrive;
-	*(system32 + 1) = *(systemDrive + 1);
-	memcpy(system32 + 2, "\\Windows\\System32", sizeof("\\Windows\\System32"));
-
-	char fullCommand[BUFSIZE + 11];
-	ZeroMemory(fullCommand, BUFSIZE + 11);
-	memcpy(fullCommand, "cmd.exe /c ", 11);
-	memcpy(fullCommand + 11, commandLine, strlen(commandLine));
-
-	if(!CreateProcessA(NULL, fullCommand,
-				NULL, NULL, FALSE, CREATE_NEW_CONSOLE, 
-				NULL, system32, &startupInfo, &procInfo))
-		return process;
-
-	process.info = procInfo;
-	process.stdOut = startupInfo.hStdOutput;
-	process.stdIn = startupInfo.hStdInput;
-	process.stdErr = startupInfo.hStdError;
-	process.isOk = TRUE;
-
-	return process;
+	return command + integerTokenLen + 1;
 }
 
 static inline LPSTR ErrorString(int errn) {
@@ -65,19 +46,4 @@ static inline BOOL IsNumber(PSTR str, SIZE_T lenstr) {
 			return FALSE;
 
 	return TRUE;
-}
-
-static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
-	char* integerToken = strtok(command, " ");
-	char* endptr = NULL;
-	SIZE_T integerTokenLen = strlen(integerToken);
-
-	if((*dwTimeout = strtol(integerToken, &endptr, 10)) == 0){
-		if(!IsNumber(integerToken, integerTokenLen))
-			return NULL;
-		else
-			*dwTimeout = INFINITE;
-	}
-
-	return command + integerTokenLen + 1;
 }

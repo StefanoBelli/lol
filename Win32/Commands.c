@@ -140,3 +140,18 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 	return TRUE;
 }
 
+BOOL ListDirectoryCommand(SOCKET* sck, PSTR str) {
+	char* directoryContent = NULL;
+
+	HANDLE processHeap = GetProcessHeap();
+	if(!strlen(str))
+		directoryContent = GetDirectoryContent(".", processHeap);
+	else {
+		//tokenizer, while != null
+	}
+		
+	WriteConnection(sck, directoryContent);
+	HeapFree(processHeap, 0x0, directoryContent);
+
+	return TRUE;
+}
