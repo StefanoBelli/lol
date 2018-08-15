@@ -42,7 +42,7 @@ def controller_kind_of_shell(sock):
                     stdout_controller_print("seems too short... :/")
                     break
 
-                if command == "close\n":
+                if command == "close":
                     return
                 
                 stdout_controller_print("got it: sent {} bytes...".format(sock.send(command.encode('ascii'))))
