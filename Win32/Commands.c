@@ -144,6 +144,25 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 
 #define size_t_cast(expr) ((SIZE_T) (expr))
 
+// \\*
+// reserve 2 more bytes for str
+// char path[12]; [ZEROED]
+// Example:
+//   [c:\windows]\*
+//   12 bytes
+#define PutAnyWildcardAtString(str) { \
+	SIZE_T len = strlen(str); \
+	char* endPtr = (*(str + len - 1) == ' ') ? str + len - 1 : str + len; \
+	*endPtr = '\\';	\
+	*(endPtr + 1) = '*'; \
+}
+
+#define ShiftStringLeftByOne(str, ssize) { \
+	for(SIZE_T i = 0; i <= ssize - 1; ++i) \
+		str[i] = str[i + 1]; \
+}
+
+
 BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 	if(!processHeap)
 		processHeap = GetProcessHeap();
@@ -166,13 +185,30 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 		while ((begTokenPtr = GetNextStringToken(str, &endTokenPtr, lenStr))) {
 			ZeroMemory(effectivePath, MAX_PATH + 2);
 
-			memcpy(effectivePath, begTokenPtr, size_t_cast(endTokenPtr - begTokenPtr));
+			if (*begTokenPtr == '"')
+				GetDoubleQuoteDelimString(begTokenPtr, &endTokenPtr, lenStr);
+
+			SIZE_T effPathLen = size_t_cast(endTokenPtr - begTokenPtr);
+			memcpy(effectivePath, begTokenPtr, effPathLen);
+
+			if (*begTokenPtr == '"') {
+				ShiftStringLeftByOne(effectivePath, effPathLen);
+				effectivePath[effPathLen - 2] = 0;
+				effectivePath[effPathLen - 1] = 0;
+			}
+
 			PutAnyWildcardAtString(effectivePath);
+
+			if (*begTokenPtr == '"') {
+				str = endTokenPtr + 1;
+				GetNextStringToken(NULL, &endTokenPtr, 0);
+				lenStr = strlen(str);
+			}
 
 			content = GetDirectoryContent(processHeap, effectivePath);
 
 			WriteConnection(sock, effectivePath);
-			WriteConnection(sock, content);
+			//WriteConnection(sock, content);
 
 			HeapFree(processHeap, 0x0, content);
 		}

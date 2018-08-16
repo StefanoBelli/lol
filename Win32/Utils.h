@@ -74,15 +74,6 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T 
 	return strBeginning;
 }
 
-// \\*
-// reserve 2 more bytes for str
-// char path[12]; [ZEROED]
-// Example:
-//   [c:\windows]\*
-//   12 bytes
-#define PutAnyWildcardAtString(str) \
-	strncat(str, "\\*", 2)
-
 #define __Internal_TokenizerCondRst(c,pb) \
 	c = 0; \
 	pb = NULL
@@ -122,7 +113,7 @@ static inline char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length)
 
 	for (; counter < length && *beginningptr++ != ' '; ++counter) {}
 
-	*endptr = beginningptr - 1;
+	*endptr = beginningptr;
 
 	return tmpptr;
 }
