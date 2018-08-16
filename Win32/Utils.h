@@ -97,7 +97,7 @@ static inline char* GetNextStringToken(PSTR strin, DWORD* quotedStringEndPos) {
 		return NULL;
 
 	*quotedStringEndPos = 0;
-	char* quotedString = GetDoubleQuoteDelimString(firstToken, quotedStringEndPos, strlen(firstToken));
+	char* quotedString = GetDoubleQuoteDelimString(firstToken, quotedStringEndPos, strlen(strin));
 
 	return __NextAppropriateToken(firstToken, quotedString);
 }
