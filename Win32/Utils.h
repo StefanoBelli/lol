@@ -47,10 +47,18 @@ static inline BOOL IsNumber(PSTR str, SIZE_T lenstr) {
 
 	return TRUE;
 }
-static inline char* GetDoubleQuoteDelimString(PSTR strin, PSTR* endptr, SIZE_T lenstr) {
+
+//
+// strin: target input string
+// endptr: output end pointer for the current token
+// length: length of the input string
+//
+// returns: the initial position for the delimited string
+//
+static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T length) {
 	char *strBeginning = NULL;
 
-	for (SIZE_T i = 0; i < lenstr; ++i) {
+	for (SIZE_T i = 0; i < length; ++i) {
 		if (strin[i] == '"') {
 			if (!strBeginning)
 				strBeginning = strin + i; //first occ
@@ -75,22 +83,48 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, PSTR* endptr, SIZE_T l
 #define PutAnyWildcardAtString(str) \
 	strncat(str, "\\*", 2)
 
-#define __TokenizerArgument(tok, _EvalsTrueArgument) \
-	(firstToken == NULL ? _EvalsTrueArgument : NULL)
+#define __Internal_TokenizerCondRst(c,pb) \
+	c = 0; \
+	pb = NULL
 
-static inline char* GetNextStringToken(PSTR strin) {
-	static char* firstToken = NULL;
+//
+// strin: target input string
+// endptr: output end pointer for the current token
+// length: length of the input string
+// 
+// returns the initial position of the token
+//
+// internal state resets for the following conditions:
+//   * strin is set to NULL
+//   * end of the string is reached
+//
+static inline char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length) {
+	static SIZE_T counter = 0;
+	static char* beginningptr = NULL;
 
-	//reset internal state
+	//reset internal state explicitly
 	if (strin == NULL) {
-		firstToken = NULL;
+		__Internal_TokenizerCondRst(counter, beginningptr);
+		*endptr = NULL;
 		return NULL;
 	}
 
-	firstToken = strtok(__TokenizerArgument(firstToken, strin) , " ");
-
-	if (firstToken == NULL)
+	//reset internal state, reached the end of the string
+	if (length == counter) {
+		__Internal_TokenizerCondRst(counter, beginningptr);
 		return NULL;
+	}
 
-	return firstToken;
+	if (beginningptr == NULL)
+		beginningptr = strin;
+
+	char* tmpptr = beginningptr;
+
+	for (; counter < length && *beginningptr++ != ' '; ++counter) {}
+
+	*endptr = beginningptr - 1;
+
+	return tmpptr;
 }
+
+#undef __Internal_TokenizerCondRst

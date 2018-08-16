@@ -142,6 +142,8 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 	return TRUE;
 }
 
+#define size_t_cast(expr) ((SIZE_T) (expr))
+
 BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 	if(!processHeap)
 		processHeap = GetProcessHeap();
@@ -155,20 +157,23 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 		HeapFree(processHeap, 0x0, content);
 	}
 	else {
-		char* actualToken;
+		char* begTokenPtr = NULL;
+		char* endTokenPtr = NULL;
+
 		char effectivePath[MAX_PATH + 2];
+		SIZE_T lenStr = strlen(str);
 
-		while ((actualToken = GetNextStringToken(str))) {
-			if (actualToken[0] == '\"' || actualToken[strlen(actualToken) - 1] == '\"')
-				continue;
-
+		while ((begTokenPtr = GetNextStringToken(str, &endTokenPtr, lenStr))) {
 			ZeroMemory(effectivePath, MAX_PATH + 2);
-			memcpy(effectivePath, actualToken, strlen(actualToken));
 
+			memcpy(effectivePath, begTokenPtr, size_t_cast(endTokenPtr - begTokenPtr));
 			PutAnyWildcardAtString(effectivePath);
+
 			content = GetDirectoryContent(processHeap, effectivePath);
+
 			WriteConnection(sock, effectivePath);
 			WriteConnection(sock, content);
+
 			HeapFree(processHeap, 0x0, content);
 		}
 
