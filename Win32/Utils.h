@@ -47,8 +47,7 @@ static inline BOOL IsNumber(PSTR str, SIZE_T lenstr) {
 
 	return TRUE;
 }
-
-static inline char* GetDoubleQuoteDelimString(PSTR strin, DWORD* endpos, SIZE_T lenstr) {
+static inline char* GetDoubleQuoteDelimString(PSTR strin, PSTR* endptr, SIZE_T lenstr) {
 	char *strBeginning = NULL;
 
 	for (SIZE_T i = 0; i < lenstr; ++i) {
@@ -57,7 +56,7 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, DWORD* endpos, SIZE_T 
 				strBeginning = strin + i; //first occ
 			else {
 				if (i > 0 && strin[i - 1] != '\\') { //if it is not a \"
-					*endpos = i + 1;
+					*endptr = strin + i + 1;
 					break;
 				}
 			}

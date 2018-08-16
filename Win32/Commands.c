@@ -159,6 +159,9 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 		char effectivePath[MAX_PATH + 2];
 
 		while ((actualToken = GetNextStringToken(str))) {
+			if (actualToken[0] == '\"' || actualToken[strlen(actualToken) - 1] == '\"')
+				continue;
+
 			ZeroMemory(effectivePath, MAX_PATH + 2);
 			memcpy(effectivePath, actualToken, strlen(actualToken));
 
