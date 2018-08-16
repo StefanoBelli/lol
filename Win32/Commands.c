@@ -142,9 +142,6 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 	return TRUE;
 }
 
-#define CopyingStop(endpos, actualToken) \
-	(endpos ? endpos - 1 : strlen(actualToken))
-
 BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 	if(!processHeap)
 		processHeap = GetProcessHeap();
@@ -158,14 +155,12 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 		HeapFree(processHeap, 0x0, content);
 	}
 	else {
-		DWORD endPositionForQuotedStrings;
 		char* actualToken;
-		char effectivePath[MAX_PATH + 4];
+		char effectivePath[MAX_PATH + 2];
 
-		while ((actualToken = GetNextStringToken(str, &endPositionForQuotedStrings))) {
-			ZeroMemory(effectivePath, MAX_PATH + 4);
-
-			memcpy(effectivePath, actualToken, CopyingStop(endPositionForQuotedStrings, actualToken));
+		while ((actualToken = GetNextStringToken(str))) {
+			ZeroMemory(effectivePath, MAX_PATH + 2);
+			memcpy(effectivePath, actualToken, strlen(actualToken));
 
 			PutAnyWildcardAtString(effectivePath);
 			content = GetDirectoryContent(processHeap, effectivePath);

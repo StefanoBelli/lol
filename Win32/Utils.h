@@ -79,10 +79,7 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, DWORD* endpos, SIZE_T 
 #define __TokenizerArgument(tok, _EvalsTrueArgument) \
 	(firstToken == NULL ? _EvalsTrueArgument : NULL)
 
-#define __NextAppropriateToken(tok, _DoubleQuotedToken) \
-	(_DoubleQuotedToken ? _DoubleQuotedToken : tok)
-
-static inline char* GetNextStringToken(PSTR strin, DWORD* quotedStringEndPos) {
+static inline char* GetNextStringToken(PSTR strin) {
 	static char* firstToken = NULL;
 
 	//reset internal state
@@ -96,8 +93,5 @@ static inline char* GetNextStringToken(PSTR strin, DWORD* quotedStringEndPos) {
 	if (firstToken == NULL)
 		return NULL;
 
-	*quotedStringEndPos = 0;
-	char* quotedString = GetDoubleQuoteDelimString(firstToken, quotedStringEndPos, strlen(strin));
-
-	return __NextAppropriateToken(firstToken, quotedString);
+	return firstToken;
 }
