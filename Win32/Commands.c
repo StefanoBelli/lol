@@ -207,8 +207,15 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 
 			content = GetDirectoryContent(processHeap, effectivePath);
 
-			WriteConnection(sock, effectivePath);
-			//WriteConnection(sock, content);
+			const SIZE_T effPathActualSize = strlen(effectivePath);
+			content = HeapReAlloc(processHeap, HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY,
+				content, HeapSize(processHeap, 0x0, content) + sizeof("LISTING FOR DIRECTORY: ") + effPathActualSize + 1);
+			
+			strncat(content, "LISTING FOR DIRECTORY: ", sizeof("LISTING FOR DIRECTORY: "));
+			strncat(content, effectivePath, effPathActualSize);
+			strncat(content, "\n", 1);
+
+			WriteConnection(sock, content);
 
 			HeapFree(processHeap, 0x0, content);
 		}
