@@ -19,12 +19,12 @@ def obtain_socket(address):
 
 def controller_kind_of_shell(sock):
     while True:
-        sys.stdout.write("\n")
         readsock, _, _ = select.select([sys.stdin, sock],[],[])
         for sck in readsock:
             if sck == sock:
                 try:
-                    text = sock.recv(257).decode('ascii')
+                    text = sock.recv(4096).decode('ascii')
+
                     if len(text) is 0:
                         raise ConnectionResetError
                 except ConnectionResetError:
