@@ -13,6 +13,7 @@ typedef struct __s_SpawnedProcessInfo {
 
 SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine);
 char* GetDirectoryContent(HANDLE heapHandle, LPCSTR directory);
+char* GetSystemProcessSnapshot(HANDLE heapHandle);
 
 static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
 	char* integerToken = strtok(command, " ");

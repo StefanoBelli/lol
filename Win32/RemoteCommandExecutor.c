@@ -14,7 +14,8 @@ Command commands[N_COMMANDS] = {
 	{ "cd", ChangeDirectoryCommand, TRUE },
 	{ "cwd", (CommandProc) GetCwdCommand, FALSE },
 	{ "cmd", CmdCommand, TRUE },
-	{ "listdir", ListDirectoryCommand, TRUE }
+	{ "listdir", ListDirectoryCommand, TRUE },
+	{ "listprocs", (CommandProc) ListProcsCommand, FALSE }
 };
 
 static void CommandExecutor(PSTR buffer) {

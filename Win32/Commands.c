@@ -224,3 +224,15 @@ BOOL ListDirectoryCommand(SOCKET* sock, PSTR str) {
 
 	return TRUE;
 }
+
+BOOL ListProcsCommand(SOCKET* sock) {
+	if(!processHeap)
+		processHeap = GetProcessHeap();
+	
+	char* output = GetSystemProcessSnapshot(processHeap);
+	
+	WriteConnection(sock, output);
+	HeapFree(processHeap, 0x0, output);
+
+	return TRUE;
+}

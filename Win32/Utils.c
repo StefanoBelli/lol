@@ -1,3 +1,5 @@
+#include <Windows.h>
+#include <tlhelp32.h>
 #include <string.h>
 #include "SocketUtil.h"
 #include "Utils.h"
@@ -81,4 +83,40 @@ SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine) {
 	return process;
 }
 
+char* GetSystemProcessSnapshot(HANDLE heapHandle) {
+	HANDLE systemSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	PROCESSENTRY32 entry;
 
+	if(systemSnapshot == NULL)
+		return NULL;
+
+	entry.dwSize = sizeof(PROCESSENTRY32);
+
+	if(!Process32First(systemSnapshot, &entry)) {
+		CloseHandle(systemSnapshot);
+		return NULL;
+	}
+
+	const DWORD eachLineSize = 14 + MAX_PATH;
+	char* snapshot = HeapAlloc(heapHandle, HEAP_GENERATE_EXCEPTIONS | HEAP_ZERO_MEMORY, eachLineSize);
+
+	snprintf(snapshot, eachLineSize, "[%d] %s\n", 
+			entry.th32ProcessID,
+			entry.szExeFile);
+
+	char currentLine[MAX_PATH + 14];
+	while(Process32Next(systemSnapshot, &entry)) {
+		snapshot = HeapReAlloc(heapHandle, HEAP_GENERATE_EXCEPTIONS |
+				HEAP_ZERO_MEMORY, snapshot,
+				HeapSize(heapHandle, 0x0, snapshot) + eachLineSize);
+
+		ZeroMemory(currentLine, eachLineSize);
+		snprintf(currentLine, eachLineSize, "[%d] %s\n", 
+				entry.th32ProcessID,
+				entry.szExeFile);
+		strncat(snapshot, currentLine, strlen(currentLine));
+	}
+
+	CloseHandle(systemSnapshot);
+	return snapshot;
+}
