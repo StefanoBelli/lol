@@ -30,20 +30,12 @@
 	ZeroMemory(&status, sizeof(SERVICE_STATUS)); \
 	status.dwServiceType = SERVICE_WIN32_OWN_PROCESS; \
 	status.dwCurrentState = xstatus; \
-	status.dwControlsAccepted = SERVICE_ACCEPT_STOP
+	status.dwControlsAccepted = 0
 
 static SERVICE_STATUS_HANDLE handle;
 
-static void __s_ServiceStop() {
-	StopCommandExecutor();
-
-	SERVICE_STATUS_SET(SERVICE_STOPPED);
-	SetServiceStatus(handle, &status);
-}
-
 static void WINAPI __s_CtrlHandlerCallback(DWORD ctrlEv) {
-	if(ctrlEv == SERVICE_CONTROL_STOP)
-		__s_ServiceStop();
+	//lololololol
 }
 
 static void WINAPI __s_ServiceMain(void) {

