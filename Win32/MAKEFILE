@@ -14,7 +14,7 @@ LIBRARY_OUT = lol.lib
 all:$(SOURCES)
 	$(COMPILER) $(COMPILE_FLAGS) /c $**
 	$(LIBLNK_TOOL) $(LIBLNK_FLAGS) *.obj /out:$(LIBRARY_OUT)
-	$(COMPILER) $(STATIC_LIBS) /o $(EXECUTABLE_OUT) lol.lib Main.c /I$(INCLUDE_DIR)
+	$(COMPILER) $(STATIC_LIBS) /o $(EXECUTABLE_OUT) $(LIBRARY_OUT) Main.c /I$(INCLUDE_DIR)
 	
 clean:
 	del *.obj
