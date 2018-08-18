@@ -59,10 +59,14 @@ SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine) {
 	char system32[MAX_PATH];
 	ZeroMemory(system32, MAX_PATH);
 
-	const char* systemDrive = getenv("SystemDrive");
+	size_t envlen;
+	char *systemDrive;
+	_dupenv_s(&systemDrive, &envlen, "SystemDrive");
+
 	*system32 = *systemDrive;
 	*(system32 + 1) = *(systemDrive + 1);
 	memcpy(system32 + 2, "\\Windows\\System32", sizeof("\\Windows\\System32"));
+	free(systemDrive);
 
 	char fullCommand[BUFSIZE + 11];
 	ZeroMemory(fullCommand, BUFSIZE + 11);
@@ -119,4 +123,37 @@ char* GetSystemProcessSnapshot(HANDLE heapHandle) {
 
 	CloseHandle(systemSnapshot);
 	return snapshot;
+}
+
+#define __Internal_TokenizerCondRst(c,pb) \
+	c = 0; \
+	pb = NULL
+
+char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length) {
+	static SIZE_T counter = 0;
+	static char* beginningptr = NULL;
+
+	//reset internal state explicitly
+	if (strin == NULL) {
+		__Internal_TokenizerCondRst(counter, beginningptr);
+		*endptr = NULL;
+		return NULL;
+	}
+
+	//reset internal state, reached the end of the string
+	if (length == counter) {
+		__Internal_TokenizerCondRst(counter, beginningptr);
+		return NULL;
+	}
+
+	if (beginningptr == NULL)
+		beginningptr = strin;
+
+	char* tmpptr = beginningptr;
+
+	for (; counter < length && *beginningptr++ != ' '; ++counter) {}
+
+	*endptr = beginningptr;
+
+	return tmpptr;
 }

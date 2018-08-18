@@ -14,48 +14,38 @@ typedef struct __s_SpawnedProcessInfo {
 SPAWNED_PROCESS_INFO SpawnNewProcess(LPSTR commandLine);
 char* GetDirectoryContent(HANDLE heapHandle, LPCSTR directory);
 char* GetSystemProcessSnapshot(HANDLE heapHandle);
+char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length);
+
+#define ErrorString(errn, target)\
+	FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |	\
+					FORMAT_MESSAGE_FROM_SYSTEM | \
+					FORMAT_MESSAGE_IGNORE_INSERTS, \
+					NULL, errn, \
+					MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), \
+					target, 0, NULL)
 
 static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
-	char* integerToken = strtok(command, " ");
-	char* endptr = NULL;
-	SIZE_T integerTokenLen = strlen(integerToken);
-
-	if((*dwTimeout = strtol(integerToken, &endptr, 10)) == 0){
-		if(!IsNumber(integerToken, integerTokenLen))
-			return NULL;
-		else
-			*dwTimeout = INFINITE;
+	if (*command == '0') {
+		*dwTimeout = INFINITE;
+		return command + 1;
 	}
 
-	return command + integerTokenLen + 1;
+	char* integerTokenEnd;
+	char* integerTokenBegin = GetNextStringToken(command, &integerTokenEnd, strlen(command));
+	char* endptr = NULL;
+	char tmpEndValue = *integerTokenEnd;
+	*integerTokenEnd = 0;
+	SIZE_T integerTokenLen = strlen(integerTokenBegin);
+
+	if (!(*dwTimeout = strtol(integerTokenBegin, &endptr, 10)))
+		return NULL;
+
+	*integerTokenEnd = tmpEndValue;
+
+	GetNextStringToken(NULL, &integerTokenEnd, 0); //reset
+	return command + integerTokenLen;
 }
 
-static inline LPSTR ErrorString(int errn) {
-	LPSTR target;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, errn, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), //US-ENG 
-		(LPSTR) &target, 0, NULL);
-
-	return target;
-}
-
-static inline BOOL IsNumber(PSTR str, SIZE_T lenstr) {
-	for(SIZE_T i = 0; i < lenstr; ++i)
-		if(!isdigit(str[i]))
-			return FALSE;
-
-	return TRUE;
-}
-
-//
-// strin: target input string
-// endptr: output end pointer for the current token
-// length: length of the input string
-//
-// returns: the initial position for the delimited string
-//
 static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T length) {
 	char *strBeginning = NULL;
 
@@ -63,60 +53,12 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T 
 		if (strin[i] == '"') {
 			if (!strBeginning)
 				strBeginning = strin + i; //first occ
-			else {
-				if (i > 0 && strin[i - 1] != '\\') { //if it is not a \"
-					*endptr = strin + i + 1;
-					break;
-				}
+			else if (i > 0 && strin[i - 1] != '\\') { //if it is not a \"
+				*endptr = strin + i + 1;
+				break;
 			}
 		}
 	}
 
 	return strBeginning;
 }
-
-#define __Internal_TokenizerCondRst(c,pb) \
-	c = 0; \
-	pb = NULL
-
-//
-// strin: target input string
-// endptr: output end pointer for the current token
-// length: length of the input string
-// 
-// returns the initial position of the token
-//
-// internal state resets for the following conditions:
-//   * strin is set to NULL
-//   * end of the string is reached
-//
-static inline char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length) {
-	static SIZE_T counter = 0;
-	static char* beginningptr = NULL;
-
-	//reset internal state explicitly
-	if (strin == NULL) {
-		__Internal_TokenizerCondRst(counter, beginningptr);
-		*endptr = NULL;
-		return NULL;
-	}
-
-	//reset internal state, reached the end of the string
-	if (length == counter) {
-		__Internal_TokenizerCondRst(counter, beginningptr);
-		return NULL;
-	}
-
-	if (beginningptr == NULL)
-		beginningptr = strin;
-
-	char* tmpptr = beginningptr;
-
-	for (; counter < length && *beginningptr++ != ' '; ++counter) {}
-
-	*endptr = beginningptr;
-
-	return tmpptr;
-}
-
-#undef __Internal_TokenizerCondRst

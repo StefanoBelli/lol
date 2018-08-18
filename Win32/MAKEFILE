@@ -3,7 +3,7 @@ PORT=12345
 
 COMPILER = cl.exe
 INCLUDE_DIR = Include\lol
-COMPILE_FLAGS = /DDST=\"$(DST)\" /DPORT=$(PORT) /Os /W4 /I$(INCLUDE_DIR)
+COMPILE_FLAGS = /DDST=\"$(DST)\" /DPORT=$(PORT) /Os /W2 /I$(INCLUDE_DIR)
 STATIC_LIBS = ntdll.lib ws2_32.lib shell32.lib user32.lib advapi32.lib
 SOURCES = Utils.c Commands.c SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c
 EXECUTABLE_OUT = Rat.exe

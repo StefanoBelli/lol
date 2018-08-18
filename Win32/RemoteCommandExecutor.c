@@ -5,7 +5,7 @@
 #include "SocketUtil.h"
 #include "Commands.h"
 
-static SOCKET tcpSocket = SOCKET_ERROR;
+static SOCKET tcpSocket = (SOCKET) SOCKET_ERROR;
 Command commands[N_COMMANDS] = {
 	{ "help",  (CommandProc) HelpCommand, FALSE},
 	{ "hello", (CommandProc) HelloCommand, FALSE},

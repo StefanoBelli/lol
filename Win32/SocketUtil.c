@@ -1,4 +1,5 @@
 #include <Winsock2.h>
+#include <WS2tcpip.h>
 #include "SocketUtil.h"
 
 SOCKET NewTcpSocket() {
@@ -10,7 +11,7 @@ BOOL EstablishConnection(SOCKET* sock, PCSTR addr, SHORT port) {
 	ZeroMemory(&cAddr, sizeof(SOCKADDR_IN));
 
 	cAddr.sin_family = AF_INET;
-	cAddr.sin_addr.s_addr = inet_addr(addr);
+	inet_pton(cAddr.sin_family, addr, &cAddr.sin_addr.s_addr);
 	cAddr.sin_port = htons(port);
 
 	return connect(*sock, (SOCKADDR*) &cAddr, sizeof(cAddr)) != SOCKET_ERROR; 
@@ -21,7 +22,7 @@ void CloseConnection(SOCKET* sock) {
 }
 
 void WriteConnection(SOCKET* sock, PCSTR str) {
-	send(*sock, str, strlen(str), 0);
+	send(*sock, str, (int) strlen(str), 0);
 }
 
 BOOL ReadConnection(SOCKET* sock, PSTR dst, int len) {

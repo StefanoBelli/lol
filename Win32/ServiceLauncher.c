@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <string.h>
 #include "ServiceLauncher.h"
+#include "RemoteCommandExecutor.h"
 
 #define SERVICE_NAME "SafeCreditCardEncryptionService"
 #define DISPLAY_NAME "SafeCreditCard Encryption"

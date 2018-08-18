@@ -102,7 +102,8 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 	if(process.isOk == FALSE) {
 		int err = GetLastError();
 		WriteConnection(sck, "Could not start new process");
-		LPSTR message = ErrorString(err);
+		LPSTR message;
+		ErrorString(err, message);
 		WriteConnection(sck, message);
 		LocalFree(message);
 	} else {
@@ -141,6 +142,7 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 
 	return TRUE;
 }
+
 
 #define size_t_cast(expr) ((SIZE_T) (expr))
 
