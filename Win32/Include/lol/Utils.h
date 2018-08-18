@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <ctype.h>
 
 typedef struct __s_SpawnedProcessInfo {
 	PROCESS_INFORMATION info;
