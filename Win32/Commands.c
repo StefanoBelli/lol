@@ -97,6 +97,8 @@ BOOL CmdCommand(SOCKET* sck, PSTR str) {
 		return FALSE;
 	}
 
+	WriteConnection(sck,commandBeginningPtr);
+
 	SPAWNED_PROCESS_INFO process = SpawnNewProcess(commandBeginningPtr);
 	
 	if(process.isOk == FALSE) {

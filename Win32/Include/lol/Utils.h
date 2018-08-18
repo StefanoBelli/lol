@@ -26,23 +26,16 @@ char* GetNextStringToken(PSTR strin, char** endptr, SIZE_T length);
 static inline char* GetCommandTimeout(PSTR command, DWORD* dwTimeout) {
 	if (*command == '0') {
 		*dwTimeout = INFINITE;
-		return command + 1;
+		return command + 2;
 	}
 
-	char* integerTokenEnd;
-	char* integerTokenBegin = GetNextStringToken(command, &integerTokenEnd, strlen(command));
 	char* endptr = NULL;
-	char tmpEndValue = *integerTokenEnd;
-	*integerTokenEnd = 0;
-	SIZE_T integerTokenLen = strlen(integerTokenBegin);
+	char* integerToken = strtok(command, " ");
 
-	if (!(*dwTimeout = strtol(integerTokenBegin, &endptr, 10)))
+	if (!(*dwTimeout = strtol(integerToken, &endptr, 10)))
 		return NULL;
-
-	*integerTokenEnd = tmpEndValue;
-
-	GetNextStringToken(NULL, &integerTokenEnd, 0); //reset
-	return command + integerTokenLen;
+	
+	return command + strlen(integerToken) + 1;
 }
 
 static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T length) {
