@@ -2,15 +2,23 @@ DST=192.168.2.103
 PORT=12345
 
 COMPILER = cl.exe
-COMPILE_FLAGS = /DDST=\"$(DST)\" /DPORT=$(PORT) /Os /W1
+COMPILE_FLAGS = /DDST=\"$(DST)\" /DPORT=$(PORT) /Os /W4
 STATIC_LIBS = ntdll.lib ws2_32.lib shell32.lib user32.lib advapi32.lib
-SOURCES = Utils.c Commands.c SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c Main.c
+SOURCES = Utils.c Commands.c SocketUtil.c RemoteCommandExecutor.c ServiceLauncher.c
 EXECUTABLE_OUT = Rat.exe
+LIBLNK_TOOL = lib.exe
+LIBLNK_FLAGS = /VERBOSE
+LIBRARY_OUT = lol.lib
 
 all:$(SOURCES)
-	$(COMPILER) $(STATIC_LIBS) $(COMPILE_FLAGS) /o $(EXECUTABLE_OUT) $**
+	$(COMPILER) $(COMPILE_FLAGS) /c $**
+	$(LIBLNK_TOOL) $(LIBLNK_FLAGS) *.obj /out:$(LIBRARY_OUT)
+	$(COMPILER) $(STATIC_LIBS) /o $(EXECUTABLE_OUT) lol.lib Main.c
 	
 clean:
 	del *.obj
 
+cleanall:clean
+	del $(EXECUTABLE_OUT) $(LIBRARY_OUT)
 
+.PHONY: all, clean

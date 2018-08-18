@@ -1,3 +1,6 @@
 Rat.exe
 *.obj
 .vs/
+Debug/
+lol.lib
+ut
