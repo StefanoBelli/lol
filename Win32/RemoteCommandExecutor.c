@@ -16,7 +16,8 @@ Command commands[N_COMMANDS] = {
 	{ "cmd", CmdCommand, TRUE },
 	{ "listdir", ListDirectoryCommand, TRUE },
 	{ "listprocs", (CommandProc) ListProcsCommand, FALSE },
-	{ "bootstart", BootStartCfgCommand, TRUE }
+	{ "bootstart", BootStartCfgCommand, TRUE },
+	{ "getf", GetFileCommand, TRUE }
 };
 
 static void CommandExecutor(PSTR buffer) {

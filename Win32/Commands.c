@@ -315,3 +315,46 @@ BOOL BootStartCfgCommand(SOCKET* sock, PSTR str) {
 	CloseServiceHandle(systemScm);
 	return TRUE;
 }
+
+BOOL GetFileCommand(SOCKET* sock, PSTR str) {
+	if(!strlen(str))
+		return FALSE;
+
+	if(!processHeap)
+		processHeap = GetProcessHeap();
+
+	HANDLE* fileHandles = (HANDLE*) HeapAlloc(processHeap, 
+										HEAP_GENERATE_EXCEPTIONS |
+										HEAP_ZERO_MEMORY,
+										sizeof(HANDLE));
+
+	char* transmissionHeader = (char*) HeapAlloc(processHeap, 
+										HEAP_GENERATE_EXCEPTIONS |
+										HEAP_ZERO_MEMORY,
+										sizeof("\r\n\r\nAction.TransmitFiles\n"));
+	
+	memcpy(transmissionHeader, "\r\n\r\nAction.TransmitFiles\n", sizeof("\r\n\r\nAction.TransmitFiles\n"));
+
+	/*
+	if(*str == '*') {
+
+	} else {
+		//str parsing:
+		// file.txt file.bin "file with space.bin" *
+	}*/
+
+	WriteConnectionSize(sock, transmissionHeader, strlen(transmissionHeader) + 1);
+	HeapFree(processHeap, 0x0, transmissionHeader);
+	
+	char* tmp = fileHandles;
+	
+	while(fileHandles++) {
+		TransmitFileConnection(sock, *fileHandles);
+		CloseHandle(*fileHandles);
+	}
+
+	fileHandles = tmp;
+
+	HeapFree(processHeap, 0x0, fileHandles);
+	return TRUE;
+}

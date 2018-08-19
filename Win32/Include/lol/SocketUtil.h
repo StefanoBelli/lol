@@ -10,5 +10,8 @@ BOOL EstablishConnection(SOCKET*, PCSTR, SHORT);
 void CloseConnection(SOCKET*);
 
 void WriteConnection(SOCKET*, PCSTR);
+void WriteConnectionSize(SOCKET*, PCSTR, int);
 BOOL ReadConnection(SOCKET*, PSTR, int);
+
+void TransmitFileConnection(SOCKET*, HANDLE);
 
