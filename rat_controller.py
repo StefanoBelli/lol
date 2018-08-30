@@ -25,7 +25,7 @@ def controller_kind_of_shell(sock):
                 try:
                     text = sock.recv(4096).decode('ascii')
 
-                    if len(text) is 0:
+                    if len(text) == 0:
                         raise ConnectionResetError
                 except ConnectionResetError:
                     return
@@ -70,10 +70,10 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         stdout_controller_print("KeyboardInterrupt");
 
-    if conn_sock is not None: 
+    if conn_sock != None: 
         conn_sock.close()
 
-    if lsock is not None: 
+    if lsock != None: 
         lsock.close()
 
     stdout_controller_print("bye")
