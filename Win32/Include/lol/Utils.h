@@ -55,6 +55,11 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T 
 	return strBeginning;
 }
 
+//
+//this code smells like 
+// some kind of shit
+// extra memory usage and computational resources
+//
 static inline char* ReadEntireFile(HANDLE file,  HANDLE heap) {
 	DWORD readBytes = 0;
 	char* dst = HeapAlloc(heap, HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, 512);
