@@ -30,15 +30,6 @@ BOOL ReadConnection(SOCKET* sock, PSTR dst, int len) {
 	return recv(*sock, dst, len, 0) > 0;
 }
 
-void TransmitFileConnection(SOCKET* sock, HANDLE file) {
-	DWORD readBytes = 0;
-	char buffer[512] = { 0 };
-
-	while(ReadFile(file, buffer, 512, &readBytes, NULL) 
-			&& readBytes > 0)
-		WriteConnectionSize(sock, buffer, readBytes);
-}
-
 void WriteConnectionSize(SOCKET* sock, PCSTR str, int len) {
 	send(*sock, str, len, 0);
 }

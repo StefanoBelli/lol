@@ -54,3 +54,21 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T 
 
 	return strBeginning;
 }
+
+static inline char* ReadEntireFile(HANDLE file,  HANDLE heap) {
+	DWORD readBytes = 0;
+	char* dst = HeapAlloc(heap, HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, 512);
+	DWORD currentSize = 0;
+
+	while (ReadFile(file, dst + currentSize, 512, &readBytes, NULL)
+		&& readBytes > 0) {
+
+		currentSize = HeapSize(heap, 0, dst);
+		dst = HeapReAlloc(heap,
+			HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS,
+			dst,
+			currentSize + readBytes);
+	}
+
+	return dst;
+}

