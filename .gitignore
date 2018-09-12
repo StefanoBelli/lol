@@ -4,3 +4,7 @@ Rat.exe
 Debug/
 lol.lib
 ut
+x64/
+*.vcxproj
+*.vcxproj.filters
+*.sln
