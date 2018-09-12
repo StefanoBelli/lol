@@ -61,19 +61,7 @@ static inline char* GetDoubleQuoteDelimString(PSTR strin, char** endptr, SIZE_T 
 // extra memory usage and computational resources
 //
 static inline char* ReadEntireFile(HANDLE file,  HANDLE heap) {
-	DWORD readBytes = 0;
-	char* dst = HeapAlloc(heap, HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, 512);
-	DWORD currentSize = 0;
-
-	while (ReadFile(file, dst + currentSize, 512, &readBytes, NULL)
-		&& readBytes > 0) {
-
-		currentSize = HeapSize(heap, 0, dst);
-		dst = HeapReAlloc(heap,
-			HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS,
-			dst,
-			currentSize + readBytes);
-	}
-
+	char* dst = HeapAlloc(heap, HEAP_ZERO_MEMORY | HEAP_GENERATE_EXCEPTIONS, sizeof("implementation missing\n"));
+	memcpy(dst,"implementation missing\n", sizeof("implementation missing\n");
 	return dst;
 }
